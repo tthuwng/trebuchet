@@ -1,5 +1,7 @@
 ### PHYS-360 Trebuchet Simulator
 
+![Trebuchet Simulation](/assets/trebuchet.gif)
+
 To run the Trebuchet Simulator, follow these steps:
 
 #### Prerequisites
