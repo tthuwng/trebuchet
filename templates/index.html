@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trebuchet Simulator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        display: flex;
+      }
+      .controls {
+        width: 300px;
+        padding: 20px;
+      }
+      .simulation {
+        flex-grow: 1;
+        padding: 20px;
+      }
+      .slider-container {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <h2>Simulator</h2>
+        <form id="simulationForm">
+          <label for="M">Mass of Counterweight (kg):</label>
+          <input type="number" id="M" name="M" step="0.1" value="133" /><br />
+          <label for="m">Mass of Projectile (kg):</label>
+          <input type="number" id="m" name="m" step="0.1" value="1" /><br />
+          <label for="L1">Length of Counterweight Arm (m):</label>
+          <input type="number" id="L1" name="L1" step="0.1" value="0.2" /><br />
+          <label for="L2">Length of Throwing Arm (m):</label>
+          <input type="number" id="L2" name="L2" step="0.1" value="0.8" /><br />
+          <label for="L3">Length of Sling (m):</label>
+          <input type="number" id="L3" name="L3" step="0.1" value="0.8" /><br />
+          <label for="h">Height of Pivot (m):</label>
+          <input type="number" id="h" name="h" step="0.1" value="0" /><br />
+          <label for="launchAngle">Launch Angle (degrees):</label>
+          <input
+            type="number"
+            id="launchAngle"
+            name="launchAngle"
+            value="90"
+            step="1"
+          /><br />
+          <button type="submit">Simulate</button>
+        </form>
+        <div class="slider-container">
+          <label for="speedSlider"
+            >Speed: <span id="speedValue">2x</span></label
+          >
+          <input
+            type="range"
+            id="speedSlider"
+            min="0.2"
+            max="32"
+            step="0.1"
+            value="2"
+          />
+        </div>
+        <button id="pauseButton">Pause</button>
+      </div>
+      <div class="simulation">
+        <canvas
+          id="plot"
+          width="800"
+          height="600"
+          style="border: 1px solid #000000"
+        ></canvas>
+      </div>
+    </div>
+    <div id="simulationData">
+      <p>X: <span id="dataX">0</span></p>
+      <p>Y: <span id="dataY">0</span></p>
+      <p>Time: <span id="dataT">0</span></p>
+      <p>Angle Theta: <span id="dataTheta">0</span></p>
+      <p>Rmax: <span id="dataRmax">0</span></p>
+    </div>
+    <script>
+      document.getElementById("simulationForm").onsubmit = function (event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const params = Object.fromEntries(formData.entries());
+        fetch("/simulate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(params),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data);
+            resetSimulation();
+            animatePlot(data.x, data.y, data["angle_theta"], data["t"]);
+          });
+      };
+
+      function resetSimulation() {
+        const canvas = document.getElementById("plot");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        path = [];
+        frame = 0;
+        isPaused = false;
+        document.getElementById("pauseButton").textContent = "Pause";
+      }
+
+      document.getElementById("speedSlider").oninput = function () {
+        document.getElementById("speedValue").textContent = this.value + "x";
+      };
+
+      let draw;
+      let path = [];
+
+      let speedFactor = document.getElementById("speedSlider").value;
+
+      document.getElementById("speedSlider").oninput = function () {
+        speedFactor = this.value;
+        document.getElementById("speedValue").textContent = this.value + "x";
+      };
+
+      function animatePlot(xData, yData, angleData, tData) {
+        const canvas = document.getElementById("plot");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        const padding = 20;
+
+        let xMin = Math.min(...xData);
+        let xMax = Math.max(...xData);
+        let yMin = -1;
+        let yMax = Math.max(...yData);
+        console.log(xMin, xMax, yMin, yMax);
+
+        const scaleX = (width - 2 * padding) / (xMax - xMin);
+        const scaleY = (height - 2 * padding) / (yMax - yMin);
+        let frame = 0;
+
+        draw = function () {
+          if (frame >= xData.length || yData[frame] < -1) {
+            // Check if y <= 0 to simulate hitting the ground
+            cancelAnimationFrame(animationFrameId);
+            return;
+          }
+
+          ctx.clearRect(0, 0, width, height);
+
+          const x = padding + (xData[frame] - xMin) * scaleX;
+          const y = height - padding - (yData[frame] - yMin) * scaleY;
+
+          ctx.fillStyle = "red";
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+
+          path.push({ x, y });
+
+          ctx.strokeStyle = "blue";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let i = 0; i < path.length - 1; i++) {
+            ctx.moveTo(path[i].x, path[i].y);
+            ctx.lineTo(path[i + 1].x, path[i + 1].y);
+          }
+          ctx.stroke();
+
+          document.getElementById("dataX").textContent =
+            xData[frame].toFixed(2) + " m";
+          document.getElementById("dataY").textContent =
+            yData[frame].toFixed(2) + " m";
+          document.getElementById("dataT").textContent =
+            tData[frame].toFixed(2) + " s";
+          document.getElementById("dataTheta").textContent =
+            angleData[frame].toFixed(2) + " rag";
+
+          frame++;
+          animationFrameId = requestAnimationFrame(draw);
+        };
+
+        draw();
+      }
+
+      let isPaused = false;
+      let animationFrameId;
+
+      document
+        .getElementById("pauseButton")
+        .addEventListener("click", function () {
+          if (!isPaused) {
+            cancelAnimationFrame(animationFrameId);
+            this.textContent = "Resume";
+          } else {
+            animationFrameId = requestAnimationFrame(draw);
+            this.textContent = "Pause";
+          }
+          isPaused = !isPaused;
+        });
+    </script>
+  </body>
+</html>
