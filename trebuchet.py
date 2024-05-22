@@ -1,5 +1,7 @@
-import matplotlib.pyplot as plt
+from typing import Tuple
+
 import numpy as np
+from matplotlib import pyplot as plt
 
 
 def calc_phiDD(phi, theta, phiD, thetaD, thetaDD, L2, L3, m, g):
@@ -21,14 +23,16 @@ def calc_thetaDD(theta, phi, thetaD, phiD, phiDD, L1, L2, L3, M, m, g):
     ) / (M * L1**2 + m * L2**2)
 
 
-def trebuchet(NP, t, dt, params):
+def trebuchet(
+    NP: int, t: np.array, dt: float, params: dict
+) -> Tuple[np.array, np.array, np.array, np.array]:
     # Extract parameters from the params dictionary
     g = 9.81  # m/s^2  (Acceleration of Gravity on earth)
     M = float(params["M"])  # kg    (Mass of the counterweight)
     m = float(params["m"])  # kg      (Mass of the projectile)
     L1 = float(params["L1"])  # m    (Length of the counterweight arm)
     L2 = float(params["L2"])  # m    (Length of the throwing arm)
-    L3 = float(params["L3"])  # m    (Length of the rope/sling)
+    L3 = float(params["L3"])  # m     (Length of the rope/sling)
     h = float(params["h"])  # m    (Height of the counterweight)
 
     phiInit = np.pi * 3 / 4  # -rad (initial sling angle)
@@ -56,8 +60,13 @@ def trebuchet(NP, t, dt, params):
     # Initializing position and velocity
     phi[0] = phiInit
     phiD[0] = phiDInit
+
     theta[0] = thetaInit
     thetaD[0] = thetaDInit
+
+    yM[0] = L1 * np.sin(thetaInit) + h
+    xM[0] = L1 * np.cos(thetaInit)
+
     ym[0] = -L2 * np.sin(thetaInit) - L3 * np.sin(phiInit) + h
     xm[0] = -L2 * np.cos(thetaInit) + L3 * np.cos(phiInit)
 
@@ -114,40 +123,50 @@ def trebuchet(NP, t, dt, params):
 
     c = 0
     while j < (NP - 1):  # Begin Projectile Motion
-        j += 1
-        c += 1
+        j = j + 1
+        c = c + 1
         ym[j] = ymDInit * (c) * dt - g / 2 * ((c) * dt) ** 2 + launchYm
         xm[j] = xmDInit * (c) * dt + launchXm
+
+        if 10 < ym[j] < 11:
+            print(xm[j])
 
     return xm, ym, theta, t
 
 
-### Parameters
+## Parameters
 # params = {
-#     "M": 133,
-#     "m": 1,
-#     "L1": 1 / 5,
-#     "L2": 4 / 5,
-#     "L3": 4 / 5,
-#     "h": 2,
-#     "launchAngle": 45,
+#     "M": 550 * 133,  # Mass of the counterweight
+#     "m": 550,  # Mass of the projectile
+#     "L1": 10 * 1 / 10,  # Length of the counterweight arm
+#     "L2": 10 * 9 / 10,  # Length of the throwing arm
+#     "L3": 10 * 2 / 10,  # Length of the rope/sling
+#     "h": 10,  # Height of Pivot
+#     "launchAngle": np.pi * 3 / 10 * (180 / np.pi),  # Launch angle in degrees
 # }
 
-### Time
+## Time
 # NP = 2**12
 # i = np.linspace(1, NP, NP)
 # total_time = 10
 # dt = total_time / NP
 # t = i * dt
 
-# xm, ym, theta = trebuchet(NP, t, dt, params)
+# xm, ym, theta, t = trebuchet(NP, t, dt, params)
 # plt.figure()
 # plt.plot(xm, ym, color="red", label="Position")
-
+# plt.title(
+#     "Trebuchet Motion",
+#     fontsize="large",
+#     loc="left",
+#     fontweight="bold",
+#     style="normal",
+#     family="monospace",
+# )
 # plt.legend(loc="upper right")
 # plt.xlabel("x projectile (m)")
 # plt.ylabel("y projectile (m)")
-# plt.ylim(-10, 10)
-# plt.xlim(-10, 10)
+# plt.ylim(-0, 170)
+# plt.xlim(-20, 150)
 
 # plt.show()
