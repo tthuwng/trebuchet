@@ -35,8 +35,8 @@ def trebuchet(
     L3 = float(params["L3"])  # m     (Length of the rope/sling)
     h = float(params["h"])  # m    (Height of the counterweight)
 
-    phiInit = np.pi * 3 / 4  # -rad (initial sling angle)
-    thetaInit = 0.5  # rad (initial arm angle)
+    phiInit = float(params["phiInit"]) * np.pi / 180  # -rad (initial sling angle)
+    thetaInit = float(params["thetaInit"]) * np.pi / 180  # rad (initial arm angle)
     launchTheta = float(params["launchAngle"]) * np.pi / 180  # rad (Launch angle)
 
     # Initial Angular Velocity

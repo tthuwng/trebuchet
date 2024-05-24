@@ -65,10 +65,10 @@
             </tr>
             <tr>
               <td>
-                <label for="L3">Length of Sling (m):</label>
+                <label for="L3">Length of Rope (m):</label>
               </td>
               <td>
-                <input type="number" id="L3" name="L3" step="0.1" value="2" />
+                <input type="number" id="L3" name="L3" step="0.1" value="4" />
               </td>
             </tr>
             <tr>
@@ -77,6 +77,27 @@
               </td>
               <td>
                 <input type="number" id="h" name="h" step="0.1" value="10" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="phiInit">Initial Sling Angle (degrees):</label>
+              </td>
+              <td>
+                <input type="number" id="phiInit" name="phiInit" value="180" />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <label for="thetaInit">Initial Arm Angle (degrees):</label>
+              </td>
+              <td>
+                <input
+                  type="number"
+                  id="thetaInit"
+                  name="thetaInit"
+                  value="72"
+                />
               </td>
             </tr>
             <tr>
@@ -188,7 +209,7 @@
         const padding = 5;
 
         let xMin = -20;
-        let xMax = 150;
+        let xMax = 300;
         let yMin = -0;
         let yMax = 170;
         console.log(xMin, xMax, yMin, yMax);
